@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Execution · Slice 2 · Itinerary</title>
+  <style>
+    :root {
+      --red:#DA020E; --red-dk:#A30009; --red-soft:#FCE9EA;
+      --ink:#1A1A1A; --text:#222; --text-2:#6A5C5E; --text-3:#A89A9C;
+      --bg:#FBF7F7; --card:#fff; --border:rgba(218,2,14,0.18);
+      --green:#2E7D32; --green-lt:#E8F3E9; --amber:#A86A00;
+      --gold:#C99700; --gold-lt:#FBF3D8;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:var(--bg);color:var(--text);padding:22px 16px;max-width:600px;margin:0 auto;}
+    h1{font-size:22px;font-weight:800;font-style:italic;text-transform:uppercase;letter-spacing:-0.5px;margin-bottom:2px;}
+    h1 span{color:var(--red);}
+    .sub{font-size:11px;color:var(--text-3);margin-bottom:18px;text-transform:uppercase;letter-spacing:1px;}
+    .card{background:var(--card);border:0.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;
+      border-left:3px solid var(--red);}
+    .card-title{font-size:12px;font-weight:700;color:var(--red-dk);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}
+    label{font-size:12px;color:var(--text-2);display:block;margin:8px 0 4px;}
+    input,select{width:100%;padding:11px 13px;font-size:16px;border:0.5px solid var(--border);
+      border-radius:8px;background:var(--card);color:var(--text);min-height:46px;margin-bottom:6px;}
+    input:focus,select:focus{outline:none;border-color:var(--red);}
+    button{background:var(--red);color:#fff;border:none;border-radius:8px;padding:12px 16px;
+      font-size:14px;cursor:pointer;min-height:46px;width:100%;margin-top:6px;font-weight:700;
+      text-transform:uppercase;letter-spacing:0.5px;}
+    button:active{opacity:.85;}
+    button.secondary{background:var(--red-soft);color:var(--red-dk);}
+    .status{font-size:13px;margin-top:8px;font-weight:600;}
+    .status.ok{color:var(--green);} .status.err{color:var(--red);}
+    .row{display:flex;gap:8px;} .row > *{flex:1;}
+    .summary{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .bar{flex:1;height:8px;background:var(--red-soft);border-radius:4px;overflow:hidden;}
+    .bar-fill{height:100%;background:var(--green);}
+    .summary-txt{font-size:12px;color:var(--text-2);white-space:nowrap;}
+    .day-head{font-size:12px;font-weight:700;color:var(--red-dk);text-transform:uppercase;letter-spacing:0.5px;margin:14px 0 6px;}
+    .stop{border:0.5px solid var(--border);border-radius:10px;padding:11px 12px;margin-bottom:7px;}
+    .stop-top{display:flex;align-items:center;gap:8px;}
+    .stop-time{font-size:12px;color:var(--text-3);width:42px;flex-shrink:0;}
+    .stop-name{font-size:14px;font-weight:600;flex:1;}
+    .pill{font-size:10px;padding:3px 8px;border-radius:4px;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;}
+    .pill.booked{background:var(--green-lt);color:var(--green);}
+    .pill.planned{background:var(--gold-lt);color:var(--gold);}
+    .pill.idea{background:#F0ECEC;color:var(--text-3);}
+    .stop-meta{font-size:12px;color:var(--text-2);margin-top:4px;}
+    .chk{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;cursor:pointer;}
+    .chk .box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--text-3);display:flex;align-items:center;justify-content:center;font-size:11px;}
+    .chk.done .box{background:var(--green);border-color:var(--green);color:#fff;}
+    .chk.done .txt{text-decoration:line-through;color:var(--text-3);}
+    .result{font-family:ui-monospace,monospace;font-size:11px;background:var(--red-soft);border-radius:8px;
+      padding:10px;white-space:pre-wrap;word-break:break-word;color:var(--text-2);margin-top:8px;}
+  </style>
+</head>
+<body>
+  <h1>MATCH<span>DAY</span> · ITINERARY</h1>
+  <div class="sub">Execution · Slice 2 · day stops + checklist</div>
+
+  <div class="card">
+    <div class="card-title">Execution API URL</div>
+    <input type="text" id="api" placeholder="https://script.google.com/macros/s/…/exec">
+    <label>Trip ID (from slice 1, e.g. barcelona-202608)</label>
+    <input type="text" id="trip" placeholder="barcelona-202608">
+  </div>
+
+  <div class="card">
+    <div class="card-title">Add a stop</div>
+    <label>Name</label>
+    <input type="text" id="s-name" value="Sagrada Família">
+    <div class="row">
+      <div><label>Day</label><input type="number" id="s-day" value="1" min="1"></div>
+      <div><label>Time</label><input type="text" id="s-time" value="10:00"></div>
+    </div>
+    <div class="row">
+      <div><label>Type</label>
+        <select id="s-type"><option>sightseeing</option><option>food</option><option>transport</option><option>accommodation</option><option>activity</option></select>
+      </div>
+      <div><label>Status</label>
+        <select id="s-status"><option>idea</option><option>planned</option><option>booked</option></select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Est. cost</label><input type="number" id="s-cost" value="26"></div>
+      <div><label>Currency</label><input type="text" id="s-ccy" value="EUR"></div>
+    </div>
+    <label>Checklist (comma-separated to-dos)</label>
+    <input type="text" id="s-chk" value="Book timed-entry ticket, Climb a tower, See the Nativity façade">
+    <button onclick="addStop()">Add stop</button>
+    <div class="status" id="add-status"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Itinerary</div>
+    <button class="secondary" onclick="loadItinerary()">Load itinerary</button>
+    <div class="status" id="load-status"></div>
+    <div class="summary" id="summary" style="display:none;margin-top:12px">
+      <div class="bar"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
+      <span class="summary-txt" id="summary-txt"></span>
+    </div>
+    <div id="itin" style="margin-top:6px"></div>
+  </div>
+
+<script>
+  function api(){return document.getElementById('api').value.trim();}
+  function trip(){return document.getElementById('trip').value.trim();}
+  function setStatus(id,ok,msg){var e=document.getElementById(id);e.textContent=msg;e.className='status '+(ok?'ok':'err');}
+
+  async function addStop(){
+    if(!api()||!trip()){setStatus('add-status',false,'Enter API URL and Trip ID first');return;}
+    var checklist=document.getElementById('s-chk').value.split(',')
+      .map(function(t){return t.trim();}).filter(Boolean)
+      .map(function(t){return {text:t,done:false};});
+    setStatus('add-status',true,'Adding…');
+    try{
+      var res=await fetch(api(),{method:'POST',body:JSON.stringify({
+        action:'addItineraryItem',
+        trip_id:trip(),
+        day:parseInt(document.getElementById('s-day').value)||1,
+        time:document.getElementById('s-time').value,
+        name:document.getElementById('s-name').value,
+        type:document.getElementById('s-type').value,
+        status:document.getElementById('s-status').value,
+        est_cost:document.getElementById('s-cost').value,
+        currency:document.getElementById('s-ccy').value,
+        checklist:checklist
+      })});
+      var data=await res.json();
+      if(data.ok){setStatus('add-status',true,'✓ Added');loadItinerary();}
+      else setStatus('add-status',false,'✗ '+data.error);
+    }catch(err){setStatus('add-status',false,'✗ '+err.message);}
+  }
+
+  async function loadItinerary(){
+    if(!api()||!trip()){setStatus('load-status',false,'Enter API URL and Trip ID first');return;}
+    setStatus('load-status',true,'Loading…');
+    try{
+      var sRes=await fetch(api()+'?action=getItinerarySummary&trip='+encodeURIComponent(trip()));
+      var sData=await sRes.json();
+      if(sData.ok){
+        var s=sData.summary;
+        document.getElementById('summary').style.display='flex';
+        document.getElementById('bar-fill').style.width=s.pct+'%';
+        document.getElementById('summary-txt').textContent=s.booked+' / '+s.total+' booked · planned '+s.planned_cost;
+      }
+      var res=await fetch(api()+'?action=getItinerary&trip='+encodeURIComponent(trip()));
+      var data=await res.json();
+      if(!data.ok){setStatus('load-status',false,'✗ '+data.error);return;}
+      var wrap=document.getElementById('itin'); wrap.innerHTML='';
+      if(!data.itinerary.length){setStatus('load-status',true,'No stops yet — add one above');return;}
+      var curDay=null;
+      data.itinerary.forEach(function(it){
+        if(it.day!==curDay){
+          curDay=it.day;
+          wrap.innerHTML+='<div class="day-head">Day '+it.day+'</div>';
+        }
+        var chkHtml='';
+        (it.checklist||[]).forEach(function(c,idx){
+          chkHtml+='<div class="chk'+(c.done?' done':'')+'" onclick="toggleChk(\''+it.item_id+'\','+idx+')">'+
+            '<span class="box">'+(c.done?'✓':'')+'</span><span class="txt">'+escapeHtml(c.text)+'</span></div>';
+        });
+        wrap.innerHTML+='<div class="stop">'+
+          '<div class="stop-top"><span class="stop-time">'+(it.time||'')+'</span>'+
+          '<span class="stop-name">'+escapeHtml(it.name)+'</span>'+
+          '<span class="pill '+it.status+'">'+it.status+'</span></div>'+
+          '<div class="stop-meta">'+it.type+(it.est_cost?' · '+it.currency+' '+it.est_cost:'')+'</div>'+
+          chkHtml+'</div>';
+      });
+      setStatus('load-status',true,'✓ '+data.itinerary.length+' stop(s)');
+    }catch(err){setStatus('load-status',false,'✗ '+err.message);}
+  }
+
+  async function toggleChk(itemId,index){
+    try{
+      var res=await fetch(api(),{method:'POST',body:JSON.stringify({
+        action:'toggleChecklistItem',item_id:itemId,index:index
+      })});
+      var data=await res.json();
+      if(data.ok) loadItinerary();
+    }catch(err){alert(err.message);}
+  }
+
+  function escapeHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+</script>
+</body>
+</html>
